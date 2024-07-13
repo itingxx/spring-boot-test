@@ -20,9 +20,6 @@ public class SeatingChartServiceImpl implements SeatingChartService {
         return seatingChartRepository.findAll();
     }
 
-    public void updateSeat(SeatingChart seatingChart) {
-        seatingChartRepository.save(seatingChart);
-    }
 
     public SeatingChart getOneSeat(Integer floorSeatSeq) {
         Optional<SeatingChart> optional = seatingChartRepository.findById(floorSeatSeq);

@@ -74,6 +74,9 @@ public class Employee {
 
     @Override
     public String toString() {
-        return "Employee [員編=" + empId + ", 員工姓名=" + name + ", 員工電子郵件=" + email + ", 座位資訊=" + seatingChart + "]";
+        return "Employee [員編=" + empId + ", "
+        	                      	+ "員工姓名=" + name + ""
+        			             	+ ", 員工電子郵件=" + email + ""
+        					     	+ ", 座位資訊=" + seatingChart + "]";
     }
 }

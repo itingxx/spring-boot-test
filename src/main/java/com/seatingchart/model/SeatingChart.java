@@ -26,10 +26,10 @@ public class SeatingChart {
     @Column(name = "seat_no", nullable = false)
     private Integer seatNo;
 
-    @OneToOne(mappedBy = "seatingChart") // This is the owning side of the relationship
+    @OneToOne(mappedBy = "seatingChart") 
     private Employee employee;
 
-    // Constructors
+    
     public SeatingChart() {}
 
     public SeatingChart(Integer floorSeatSeq, Integer floorNo, Integer seatNo) {
@@ -38,7 +38,7 @@ public class SeatingChart {
         this.seatNo = seatNo;
     }
 
-    // Getters and Setters
+ 
     public Integer getFloorSeatSeq() {
         return floorSeatSeq;
     }
