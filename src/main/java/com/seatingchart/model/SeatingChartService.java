@@ -1,44 +1,14 @@
 package com.seatingchart.model;
 
 import java.util.List;
-import java.util.Optional;
+public interface SeatingChartService {
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+    public List<SeatingChart> getAll() ;
 
-import com.employee.model.Employee;
-import com.employee.model.EmpRepository;
+    public void updateSeat(SeatingChart seatingChart);
 
-@Service("SeatingChartService")
-public class SeatingChartService {
+    public SeatingChart getOneSeat(Integer floorSeatSeq);
+
+    public void clearSeat(Integer floorSeatSeq);
     
-    @Autowired
-    private SeatingChartRepository seatingChartRepository;
-    
-    @Autowired
-    private EmpRepository empRepository;
-
-    public List<SeatingChart> getAll() {
-        return seatingChartRepository.findAll();
-    }
-
-    public void updateSeat(SeatingChart seatingChart) {
-        seatingChartRepository.save(seatingChart);
-    }
-
-    public SeatingChart getOneSeat(Integer floorSeatSeq) {
-        Optional<SeatingChart> optional = seatingChartRepository.findById(floorSeatSeq);
-        return optional.orElse(null);
-    }
-
-    public void clearSeat(Integer floorSeatSeq) {
-        SeatingChart seat = getOneSeat(floorSeatSeq);
-        if (seat != null && seat.getEmployee() != null) {
-            Employee emp = seat.getEmployee();
-            emp.setSeatingChart(null);
-            seat.setEmployee(null);
-            seatingChartRepository.save(seat);
-            empRepository.save(emp);
-        }
-    }
 }

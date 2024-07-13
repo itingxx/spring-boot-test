@@ -1,21 +1,30 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Seating Chart</title>
+    <title>座位圖</title>
     <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
         .seat {
-            width: 200px;
+            width: 270px;
             height: 50px;
             margin: 5px;
-            display: inline-block;
+            display: flex;
+            align-items: center; /* 垂直居中對齊 */
+            justify-content: center; /* 水平居中對齊 */
             text-align: center;
-            vertical-align: middle;
-            line-height: 50px;
             cursor: pointer;
             position: relative;
+            border: 1px solid #ddd; /* 可選的邊框 */
+            border-radius: 5px; /* 可選的圓角 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 可選的陰影 */
         }
         .occupied {
-            background-color: red;
+            background-color: blue;
             color: white;
         }
         .available {
@@ -26,43 +35,130 @@
         }
         .clear-button {
             position: absolute;
-            top: 0;
-            right: 0;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
             background-color: white;
-            border: none;
+            border: 1px solid #ccc;
+            border-radius: 5px;
             cursor: pointer;
             padding: 2px 5px;
+            font-size: 14px;
+            color: #333;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+        }
+        .clear-button:hover {
+            background-color: #f0f0f0;
+            color: #000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        .clear-button:focus {
+            outline: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        .error {
+            color: red;
+        }
+        .floor-group {
+            margin-bottom: 20px;
+        }
+        .floor-seats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .floor-group {
+            text-align: center;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .legend {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .legend-item {
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+        }
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+        }
+        .legend-box.available {
+            background-color: lightgray;
+        }
+        .legend-box.occupied {
+            background-color: blue;
+        }
+        .legend-box.selecting {
+            background-color: yellow;
         }
     </style>
 </head>
 <body>
-    <h1>Seating Chart</h1>
-    <form th:action="@{/updateSeats}" method="post">
-        <div th:each="seat : ${seatListData}">
-            <div
-                 th:id="'seat-' + ${seat.floorSeatSeq}"
-                 class="seat"
-                 th:classappend="${seat.employee != null ? 'occupied' : 'available'}"
-                 th:data-floor-seat-seq="${seat.floorSeatSeq}">
-                <span th:text="${seat.floorNo + ':s' + seat.seatNo + (seat.employee != null ? ' [員編:' + seat.employee.empId + ']' : '')}"></span>
-                <button type="button" class="clear-button" th:if="${seat.employee != null}" th:onclick="'clearSeat(' + ${seat.floorSeatSeq} + ')'">清除</button>
+    <h1>座位圖</h1>
+    <form id="seatingForm" th:action="@{/updateSeats}" method="post" onsubmit="return validateForm()">
+        <!-- 遍歷樓層分組 -->
+        <div th:each="entry : ${seatsByFloor}">
+            <div class="floor-group">
+                <!-- 當前樓層的座位 -->
+                <div class="floor-seats">
+                    <div th:each="seat : ${entry.value}">
+                        <div
+                            th:id="'seat-' + ${seat.floorSeatSeq}"
+                            class="seat"
+                            th:classappend="${seat.employee != null ? 'occupied' : 'available'}"
+                            th:data-floor-seat-seq="${seat.floorSeatSeq}"
+                            th:onclick="'updateSeat(' + ${seat.floorSeatSeq} + ')'">
+                            <span th:text="${seat.floorNo + '樓:座位' + seat.seatNo + (seat.employee != null ? ' [員編:' + seat.employee.empId + ']' : '')}"></span>
+                            <button type="button" class="clear-button" th:if="${seat.employee != null}" th:onclick="'clearSeat(' + ${seat.floorSeatSeq} + ')'">清除</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div>
-            <label for="employeeSelect">選擇員工:</label>
-            <select id="employeeSelect" name="employeeId">
-                <option value="">選擇員工</option>
-                <option th:each="employee : ${employeeList}" th:value="${employee.empId}" th:text="${employee.empId + ' - ' + employee.name}"></option>
-            </select>
+        <!-- 控制區域 -->
+        <div class="controls">
+            <div>
+                <label for="employeeSelect">選擇員工:</label>
+                <select id="employeeSelect" name="employeeId">
+                    <option value="">選擇員工</option>
+                    <option th:each="employee : ${employeeList}" th:value="${employee.empId}" th:text="${employee.empId + ' - ' + employee.name}"></option>
+                </select>
+                <span>
+                <!-- 隱藏輸入框以存儲選擇的座位 ID 和清除座位 ID -->
+                <input type="hidden" id="selectedSeatId" name="selectedSeatId" />
+                <input type="hidden" id="clearSeatId" name="clearSeatId" />
+                <button type="submit">送出</button>
+            </span>
+            <span id="error-message" class="error"></span>
+            </div>
         </div>
-
-        <!-- Hidden inputs to store selected seat ID and seat ID to clear -->
-        <input type="hidden" id="selectedSeatId" name="selectedSeatId" />
-        <input type="hidden" id="clearSeatId" name="clearSeatId" />
-
-        <button type="submit">送出</button>
     </form>
+
+    <!-- 圖例 -->
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-box available"></div>
+            <span>空位</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box occupied"></div>
+            <span>已佔用</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box selecting"></div>
+            <span>請選擇</span>
+        </div>
+    </div>
 
     <script>
         let selectedSeat = null;
@@ -70,20 +166,20 @@
         function updateSeat(seatId) {
             const seatElement = document.getElementById('seat-' + seatId);
             if (selectedSeat) {
-                // Clear previous selection
+                // 清除先前的選擇
                 selectedSeat.classList.remove('selecting');
             }
             if (seatElement.classList.contains('occupied')) {
-                // Handle occupied seat
+                // 處理已占用的座位
                 return;
             }
             if (seatElement.classList.contains('selecting')) {
-                // Deselect the seat
+                // 取消選擇座位
                 seatElement.classList.remove('selecting');
                 selectedSeat = null;
                 document.getElementById('selectedSeatId').value = '';
             } else {
-                // Select the seat
+                // 選擇座位
                 seatElement.classList.add('selecting');
                 selectedSeat = seatElement;
                 document.getElementById('selectedSeatId').value = seatId;
@@ -93,6 +189,16 @@
         function clearSeat(seatId) {
             document.getElementById('clearSeatId').value = seatId;
             document.querySelector('form').submit();
+        }
+
+        function validateForm() {
+            const selectedSeatId = document.getElementById('selectedSeatId').value;
+            const employeeId = document.getElementById('employeeSelect').value;
+            if (!selectedSeatId || !employeeId) {
+                document.getElementById('error-message').innerText = '請選擇座位和員工';
+                return false;
+            }
+            return true;
         }
 
         document.querySelectorAll('.seat').forEach(seat => {

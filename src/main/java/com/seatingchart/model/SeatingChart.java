@@ -21,10 +21,10 @@ public class SeatingChart {
     private Integer floorSeatSeq;
 
     @Column(name = "floor_no", nullable = false)
-    private String floorNo;
+    private Integer floorNo;
 
     @Column(name = "seat_no", nullable = false)
-    private String seatNo;
+    private Integer seatNo;
 
     @OneToOne(mappedBy = "seatingChart") // This is the owning side of the relationship
     private Employee employee;
@@ -32,7 +32,7 @@ public class SeatingChart {
     // Constructors
     public SeatingChart() {}
 
-    public SeatingChart(Integer floorSeatSeq, String floorNo, String seatNo) {
+    public SeatingChart(Integer floorSeatSeq, Integer floorNo, Integer seatNo) {
         this.floorSeatSeq = floorSeatSeq;
         this.floorNo = floorNo;
         this.seatNo = seatNo;
@@ -47,19 +47,19 @@ public class SeatingChart {
         this.floorSeatSeq = floorSeatSeq;
     }
 
-    public String getFloorNo() {
+    public Integer getFloorNo() {
         return floorNo;
     }
 
-    public void setFloorNo(String floorNo) {
+    public void setFloorNo(Integer floorNo) {
         this.floorNo = floorNo;
     }
 
-    public String getSeatNo() {
+    public Integer getSeatNo() {
         return seatNo;
     }
 
-    public void setSeatNo(String seatNo) {
+    public void setSeatNo(Integer seatNo) {
         this.seatNo = seatNo;
     }
 
