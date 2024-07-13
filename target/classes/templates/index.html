@@ -1,55 +1,106 @@
-
-
-
-
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>index.html - Spring Boot - Maven - Spring MVC - Thymeleaf Demo</title>
-
-<link rel="stylesheet" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.min.css}"/>
-<link rel="stylesheet" th:href="@{/css/index.css}"/>
-
-<link rel="stylesheet" th:href="@{/out-statics/out-css/style.css}"/>
-<script th:src="@{/out-statics/out-js/app4.js}"/></script>
+    <title>Seating Chart</title>
+    <style>
+        .seat {
+            width: 200px;
+            height: 50px;
+            margin: 5px;
+            display: inline-block;
+            text-align: center;
+            vertical-align: middle;
+            line-height: 50px;
+            cursor: pointer;
+            position: relative;
+        }
+        .occupied {
+            background-color: red;
+            color: white;
+        }
+        .available {
+            background-color: lightgray;
+        }
+        .selecting {
+            background-color: yellow;
+        }
+        .clear-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: white;
+            border: none;
+            cursor: pointer;
+            padding: 2px 5px;
+        }
+    </style>
 </head>
 <body>
+    <h1>Seating Chart</h1>
+    <form th:action="@{/updateSeats}" method="post">
+        <div th:each="seat : ${seatListData}">
+            <div
+                 th:id="'seat-' + ${seat.floorSeatSeq}"
+                 class="seat"
+                 th:classappend="${seat.employee != null ? 'occupied' : 'available'}"
+                 th:data-floor-seat-seq="${seat.floorSeatSeq}">
+                <span th:text="${seat.floorNo + ':s' + seat.seatNo + (seat.employee != null ? ' [員編:' + seat.employee.empId + ']' : '')}"></span>
+                <button type="button" class="clear-button" th:if="${seat.employee != null}" th:onclick="'clearSeat(' + ${seat.floorSeatSeq} + ')'">清除</button>
+            </div>
+        </div>
 
-<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top justify-content-center" onclick="changeColor()" th:fragment="mynavbar">
-		 <div align="center"><h2 style="font-size: 30px ; width: max-content;">
-		 <span class="hello-color" th:text="'Hello, ' + ${message} +' : '"></span> Spring Boot + Spring MVC + Thymeleaf
-		 （
-		    <img width="95px"  height="80px" th:src="@{/images/spring boot.png}"> + 
-		    <img width="95px"  height="80px" th:src="@{/images/spring mvc.png}"> + 
-		    <img width="110px" height="30px" th:src="@{/images/thymeleaf.png}">
-		 ）
-		 </h2><h3><a class="navbar-brand" href="https://start.spring.io/">
-		 Spring Boot Quickstart 官網 : https://start.spring.io </a></h3></div>
-</nav>
-	
-<!-- 	<main role="main" class="container"> -->
-       <div class="starter-template">
-           <span class="color1" id="title1">前端展示層(View) - 搭配Thymeleaf模板引擎 - 改用HTML</span>
-           <h1><a href="https://spring.io/projects/spring-boot" class="index-green" id="title2">Spring Boot</a> <font color=black>+</font> 
-               <a href="https://maven.apache.org/">Maven</a> ->  
-               <a href="https://docs.spring.io/spring-framework/docs/current/reference/html/web.html" class="index-green" id="title3">Spring MVC</a> <font color=black>+</font> 
-               <a href="https://www.thymeleaf.org" class="index-green" id="title4">Thymeleaf</a> ->
-               <a href="https://www.tibame.com/course/33">Java WebApp</a>
-           </h1><hr><br>
-           <h3><a th:href="@{/emp/select_page}" style="text-decoration:underline;color: black;">Click here to Spring MVC + Thymeleaf Project</a></h3>
-       </div>
-       
-       <div style="float: right;left: -90%;position: relative;">
-       開發順序:
-       <ol  style="float: left;left: 100%;position: relative;">
-       
-            <li th:each="myList : ${myList}" th:utext="${myList}"></li>
+        <div>
+            <label for="employeeSelect">選擇員工:</label>
+            <select id="employeeSelect" name="employeeId">
+                <option value="">選擇員工</option>
+                <option th:each="employee : ${employeeList}" th:value="${employee.empId}" th:text="${employee.empId + ' - ' + employee.name}"></option>
+            </select>
+        </div>
 
-       </ol>
-       </div>
-<!--     </main> -->
+        <!-- Hidden inputs to store selected seat ID and seat ID to clear -->
+        <input type="hidden" id="selectedSeatId" name="selectedSeatId" />
+        <input type="hidden" id="clearSeatId" name="clearSeatId" />
 
+        <button type="submit">送出</button>
+    </form>
+
+    <script>
+        let selectedSeat = null;
+
+        function updateSeat(seatId) {
+            const seatElement = document.getElementById('seat-' + seatId);
+            if (selectedSeat) {
+                // Clear previous selection
+                selectedSeat.classList.remove('selecting');
+            }
+            if (seatElement.classList.contains('occupied')) {
+                // Handle occupied seat
+                return;
+            }
+            if (seatElement.classList.contains('selecting')) {
+                // Deselect the seat
+                seatElement.classList.remove('selecting');
+                selectedSeat = null;
+                document.getElementById('selectedSeatId').value = '';
+            } else {
+                // Select the seat
+                seatElement.classList.add('selecting');
+                selectedSeat = seatElement;
+                document.getElementById('selectedSeatId').value = seatId;
+            }
+        }
+
+        function clearSeat(seatId) {
+            document.getElementById('clearSeatId').value = seatId;
+            document.querySelector('form').submit();
+        }
+
+        document.querySelectorAll('.seat').forEach(seat => {
+            seat.addEventListener('click', (event) => {
+                const seatId = event.currentTarget.getAttribute('data-floor-seat-seq');
+                updateSeat(seatId);
+            });
+        });
+    </script>
 </body>
 </html>
