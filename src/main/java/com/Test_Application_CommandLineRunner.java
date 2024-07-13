@@ -38,8 +38,8 @@ public class Test_Application_CommandLineRunner implements CommandLineRunner {
 System.out.println("測試");
 // 新增座位
 //SeatingChart  seat1= new SeatingChart();
-//seat1.setFloorNo("5樓");
-//seat1.setSeatNo("座位1");
+//seat1.setFloorNo(5);
+//seat1.setSeatNo(1);
 //seatingChartRepository.save(seat1);
 
 	List<SeatingChart> seatlist = seatingChartService.getAll();
