@@ -24,7 +24,7 @@ public class SeatController {
 
     @Autowired
     SeatingChartService seatingChartService;
-
+//當前座位表
     @GetMapping("/")
     public String index(Model model) {
         List<SeatingChart> seatList = seatingChartService.getAll();
@@ -41,17 +41,20 @@ public class SeatController {
     }
 
     @PostMapping("/updateSeats")
-    public String updateSeats(@RequestParam(required = false) Integer selectedSeatId,
+    public String updateSeats(
+    		                  @RequestParam(required = false) Integer selectedSeatId,
                               @RequestParam(required = false) Integer employeeId,
                               @RequestParam(required = false) Integer clearSeatId,
                               Model model) {
+    	//清除佔有該座位員工
         if (clearSeatId != null) {
             seatingChartService.clearSeat(clearSeatId);
             return "redirect:/";
         }
-
+       //將選擇座位的員工存到資料庫,並重導至"/"返回視圖
         if (selectedSeatId != null && employeeId != null) {
             employeeService.assignSeatToEmployee(selectedSeatId, employeeId);
+       //顯示錯誤訊息,並返回原視圖
         } else if (selectedSeatId == null || employeeId == null) {
             model.addAttribute("errorMessage", "請選擇座位和員工");
             List<SeatingChart> updatedSeatList = seatingChartService.getAll();
